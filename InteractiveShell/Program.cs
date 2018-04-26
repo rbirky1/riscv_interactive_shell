@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace InteractiveShell
 {
-    class Register : IComparable
+    class Register
     {
         public string Name { get; }
         public string Mneumonic { get; }
@@ -13,20 +13,6 @@ namespace InteractiveShell
             this.Name = Name;
             this.Mneumonic = Mneumonic;
             this.Value = Value;
-        }
-
-        public int CompareTo(object obj) {
-            if (obj == null)
-                return 1;
-
-            string other = obj as string;
-            if (other != null)
-            {
-                return this.Name.CompareTo(other) |
-                           this.Mneumonic.CompareTo(other);
-            }
-            else
-                throw new ArgumentException("Object is not a Register");
         }
     }
 
@@ -67,22 +53,23 @@ namespace InteractiveShell
             new Register("x31", "t6", 0)
         };
 
-        static void addi(string[] instruction) {
+        static void addi(string input) {
             Register rd = null, rs1 = null;
             string rd_str, rs1_str;
             int i = 0;
             int imm = 0;
 
-            if (instruction.Length != 4) {
-                Console.WriteLine("Invalid number of arguments"
+            string[] instruction = input.Split(",");
+            if (instruction.Length != 3) {
+                Console.WriteLine("Invalid number of arguments: "
                                   + instruction.Length + " given, 3 expected");
                 return;
             }
 
-            rd_str = instruction[1].Replace(",","");
-            rs1_str = instruction[2].Replace(",", "");;
+            rd_str = instruction[0].Replace(",","").Trim();
+            rs1_str = instruction[1].Replace(",", "").Trim();
             try {
-                imm = Int32.Parse(instruction[3]);
+                imm = Int32.Parse(instruction[2]);
             } catch (FormatException e) {
                 Console.WriteLine(e.Message);
             }
@@ -103,13 +90,13 @@ namespace InteractiveShell
 
             if (rd == null)
             {
-                Console.WriteLine("Invalid rd register " + rd_str);
+                Console.WriteLine("Invalid rd register: " + rd_str);
                 return;
             }
 
             if (rs1 == null)
             {
-                Console.WriteLine("Invalid rs1 register " + rs1_str);
+                Console.WriteLine("Invalid rs1 register: " + rs1_str);
                 return;
             }
 
@@ -140,9 +127,9 @@ namespace InteractiveShell
             while (true) {
                 string input = Console.ReadLine();
                 if (input.Length != 0) {
-                    string[] instruction = input.Split(' ');
-
-                    switch (instruction[0])
+                    int split = input.IndexOf(' ');
+                    if (split <= 0) split = input.Length;
+                    switch (input.Substring(0, split))
                     {
                         case "quit":
                             return;
@@ -153,7 +140,7 @@ namespace InteractiveShell
                             printRegisters();
                             break;
                         case "addi":
-                            addi(instruction);
+                            addi(input.Substring(split + 1));
                             break;
                         default:
                             Console.WriteLine("Unrecognized/Unsupported Instruction!");
